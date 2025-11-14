@@ -12,12 +12,12 @@ bt_save = "\uF4BE"  # Подпись кнопки Сохранить кадр
 separator = "_"     # Разделитель имени файла и номера кадра
 y_pad = 10
 buttons_height = 28
-buttons_width = 580
+buttons_width = 600
 
 class VideoPlayer:
     def __init__(self):
         self.root = Tk()
-        self.root.title("FineFrameController v.1.2")
+        self.root.title("FineFrameController v.1.3")
 
         # Основная канва для показа текущего кадра
         self.canvas = Canvas(self.root)
@@ -114,6 +114,7 @@ class VideoPlayer:
             self.cap = cv2.VideoCapture(file_path)
             width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            # Устанавливаем размер окна
             self.set_window_size(width, height)
 
             # Готовим кадр
@@ -127,17 +128,33 @@ class VideoPlayer:
             self.delay_entry.delete(0, END)
             self.delay_entry.insert(END, str(initial_delay))  # Устанавливаем начальное значение задержки
 
+    # Метод для изменения зазмера окна приложения
     def set_window_size(self, width, height):
-        screen_width = self.root.winfo_screenwidth() * 0.8
-        screen_height = self.root.winfo_screenheight() * 0.8
-        scale_factor = min(1, screen_width/width, screen_height/width)
+        # Определяем размеры экрана
+        screen_width = self.root.winfo_screenwidth() * 0.9
+        screen_height = self.root.winfo_screenheight() * 0.9 - (2*y_pad+buttons_height)
+        # Вычисляем необходимый размер уменьшения кадра
+        scale_factor = min(1, screen_width/width, screen_height/height)
         max_width = int(width * scale_factor)
         max_height = int(height * scale_factor)
-        if max_width < buttons_width:
-            zoom_factor = buttons_width/max_width
+        print(screen_width/width, screen_height/width)
+        print(width, screen_height/width)
+        print(screen_width, screen_height)
+        print(max_width,max_height)
+
+        if max_width < buttons_width and scale_factor == 1:
+            zoom_factor = min(buttons_width/width, screen_height/height)
             max_width = int(max_width * zoom_factor)
             max_height = int(max_height * zoom_factor)
-        print(max_width,max_height)
+
+        # Принудительно увеличиваем ширину до размера интерфейса по необходимости и конфигурируем отступы
+        if max_width < buttons_width:
+            pad_x = (buttons_width - max_width)//2
+            self.canvas.pack_configure(padx=pad_x)
+            max_width = buttons_width
+        else:
+            self.canvas.pack_configure(padx=0)
+
         self.root.geometry(f"{max_width}x{max_height+2*y_pad+buttons_height}")  # Устанавливаем размер окна и положение
         self.frame_width = max_width
         self.frame_height = max_height
@@ -178,9 +195,6 @@ class VideoPlayer:
         if len(self.saved_frame) > 0:
             dir_name, f_name = os.path.split(self.video_path)
             save_path = os.path.join(dir_name, f_name[:f_name.rfind('.')]+separator+str(self.current_frame)+'.png')
-
-            # if not cv2.imwrite(save_path, self.saved_frame[0]):
-            #     print('Не удалось сохранить сообщение по заданному пути:',save_path)
 
             try:
                 # Преобразование массива NumPy (OpenCV читает в таком формате) в объект Image
@@ -230,9 +244,9 @@ class VideoPlayer:
                 self.current_frame_entry.insert(END, str(self.current_frame))
                 resized_frame = self.resize_frame(frame)
                 frame_rgb = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
-                photo = ImageTk.PhotoImage(image=Image.fromarray(frame_rgb))
-                self.canvas.create_image(0, 0, anchor=NW, image=photo)
-                self.canvas.image = photo
+                img = ImageTk.PhotoImage(image=Image.fromarray(frame_rgb))
+                self.canvas.create_image(0, 0, anchor='NW',  image=img)
+                self.canvas.image = img
             else:
                 self.play_pause_button.config(text=bt_play)
 
