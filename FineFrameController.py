@@ -76,6 +76,9 @@ class VideoPlayer:
         # Переменная для хранения кадра
         self.saved_frame = []
 
+        # Коэффициент масштабирования
+        self.scale_factor = 1
+
         # Привязка горячих клавиш
         self.root.bind("<Control-o>", lambda event: self.open_video())      # Ctrl + O — открыть видео
         self.root.bind("<space>", lambda event: self.play())                # Пробел — воспроизведение/пауза
@@ -100,9 +103,9 @@ class VideoPlayer:
             self.current_frame_entry.insert(END, str(self.current_frame))
             resized_frame = self.resize_frame(frame)
             frame_rgb = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
-            photo = ImageTk.PhotoImage(image=Image.fromarray(frame_rgb))
-            self.canvas.create_image(0, 0, anchor=NW, image=photo)
-            self.canvas.image = photo
+            img = ImageTk.PhotoImage(image=Image.fromarray(frame_rgb))
+            self.canvas.create_image(0, 0, anchor=NW, image=img)
+            self.canvas.image = img
 
     def open_video(self):
         self.is_playing = False
@@ -137,15 +140,12 @@ class VideoPlayer:
         scale_factor = min(1, screen_width/width, screen_height/height)
         max_width = int(width * scale_factor)
         max_height = int(height * scale_factor)
-        print(screen_width/width, screen_height/width)
-        print(width, screen_height/width)
-        print(screen_width, screen_height)
-        print(max_width,max_height)
 
         if max_width < buttons_width and scale_factor == 1:
             zoom_factor = min(buttons_width/width, screen_height/height)
             max_width = int(max_width * zoom_factor)
             max_height = int(max_height * zoom_factor)
+        else: zoom_factor = 1
 
         # Принудительно увеличиваем ширину до размера интерфейса по необходимости и конфигурируем отступы
         if max_width < buttons_width:
@@ -158,6 +158,7 @@ class VideoPlayer:
         self.root.geometry(f"{max_width}x{max_height+2*y_pad+buttons_height}")  # Устанавливаем размер окна и положение
         self.frame_width = max_width
         self.frame_height = max_height
+        self.scale_factor = scale_factor*zoom_factor
 
     def play(self):
         if not self.is_playing and self.video_path:
@@ -223,9 +224,8 @@ class VideoPlayer:
 
     def resize_frame(self, frame):
         h, w = frame.shape[:2]
-        scale_factor = min(self.frame_width / w, self.frame_height / h)
-        new_w = int(w * scale_factor)
-        new_h = int(h * scale_factor)
+        new_w = int(w * self.scale_factor)
+        new_h = int(h * self.scale_factor)
         return cv2.resize(frame, (new_w, new_h))
 
     def update_frame(self):
@@ -245,7 +245,7 @@ class VideoPlayer:
                 resized_frame = self.resize_frame(frame)
                 frame_rgb = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
                 img = ImageTk.PhotoImage(image=Image.fromarray(frame_rgb))
-                self.canvas.create_image(0, 0, anchor='NW',  image=img)
+                self.canvas.create_image(0, 0, anchor=NW, image=img)
                 self.canvas.image = img
             else:
                 self.play_pause_button.config(text=bt_play)
