@@ -2,7 +2,6 @@ from tkinter import filedialog, Tk, Label
 from tkinter.ttk import Progressbar
 import os
 import cv2
-import numpy as np
 
 sep = '_'
 
@@ -16,20 +15,26 @@ def split_file_path(file_path):
     # Разделяем имя файла и расширение
     name, extension = os.path.splitext(filename_with_extension)
 
-    # Проверяем наличие указанного разделителя '_'
-    if sep in name:
-        # Деление имени файла на две части перед символом подчеркивания (sep='_')
-        main_part, number_part = name.rsplit(sep, 1)
-
-        return {
-            'directory': directory,
-            'filename': filename_with_extension,
-            'extension': extension.lstrip('.'),
-            'main_name': main_part,
-            'number': number_part
-        }
+    # Деление имени файла на две части перед символом подчеркивания (sep='_')
+    name_parts = name.split(sep)
+    if len(name_parts) < 2:
+        print(f"Имя файла не содержит символ '{sep}'")
+        return None
+    if len(name_parts) == 2:
+        main_part, number_part = name_parts
+        postfix = ''
     else:
-        raise ValueError(f"Имя файла не содержит символ '{sep}'.")
+        main_part, number_part, postfix = name_parts
+        print(f'Имя файла содержит постфикс {postfix}')
+
+    return {
+        'directory': directory,
+        'filename': filename_with_extension,
+        'extension': extension.lstrip('.'),
+        'main_name': main_part,
+        'number': number_part,
+        'postfix': postfix
+    }
 
 def collect_and_sort_files(directory, base_name):
     """
@@ -49,7 +54,7 @@ def collect_and_sort_files(directory, base_name):
 
         # Проверяем, соответствует ли файл формату: "<базовое имя>_<номер>.<расширение>"
         parts = name.split('_')
-        if len(parts) != 2 or parts[0] != base_name:
+        if len(parts) < 2 or parts[0] != base_name:
             continue
 
         try:
@@ -98,7 +103,6 @@ def create_video_from_images(root, progress_bar, image_paths, output_path, fps=3
         root.update_idletasks()  # Перерисовка интерфейса
 
     out.release()
-    cv2.destroyAllWindows()
 
 
 root = Tk()
@@ -115,14 +119,16 @@ if f_path:
 
         open_dir = result['directory']
         b_name = result['main_name']
+        p_name = result['postfix']
         frames_list = collect_and_sort_files(open_dir, b_name)
         #print(frames_list)
 
         # Создаем видео с частотой кадров 24 FPS
         fps = 24
         output_path = f"{open_dir}/{b_name}.mp4"
-        create_video_from_images(root,progress_bar, frames_list, output_path, fps=fps)
+        create_video_from_images(root, progress_bar, frames_list, output_path, fps=fps)
         label_status.config(text="Видео успешно создано!")
 
+    else:
+        root.destroy()
 root.mainloop()
-
