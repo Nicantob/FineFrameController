@@ -86,14 +86,7 @@ class VideoPlayer:
         self.root.bind("<a>", lambda event: self.prev())                    # a — предыдущий кадр
         self.root.bind("<d>", lambda event: self.next())                    # d — следующий кадр
 
-    def prepare_frame(self):
-        # Читаем кадр
-        ret, frame = self.cap.read()
-
-        # Сохраняем кадр
-        self.saved_frame.clear()
-        self.saved_frame.append(frame)
-
+    def draw_frame(self, ret, frame):
         if ret:
             self.current_frame = int(self.cap.get(cv2.CAP_PROP_POS_FRAMES)) - 1
             self.current_frame_entry.delete(0, END)
@@ -103,6 +96,20 @@ class VideoPlayer:
             photo = ImageTk.PhotoImage(image=Image.fromarray(frame_rgb))
             self.canvas.create_image(0, 0, anchor=NW, image=photo)
             self.canvas.image = photo
+        else:
+            self.play_pause_button.config(text=bt_play)
+
+    def prepare_frame(self):
+        # Читаем кадр
+        ret, frame = self.cap.read()
+
+        # Сохраняем кадр
+        self.saved_frame.clear()
+        self.saved_frame.append(frame)
+
+        # Рисуем кадр
+        self.draw_frame(ret, frame)
+
 
     def open_video(self):
         self.is_playing = False
@@ -223,18 +230,7 @@ class VideoPlayer:
         except ValueError:
             delay_ms = 1
         if self.is_playing and self.cap is not None:
-            ret, frame = self.cap.read()
-            if ret:
-                self.current_frame = int(self.cap.get(cv2.CAP_PROP_POS_FRAMES))-1
-                self.current_frame_entry.delete(0,END)
-                self.current_frame_entry.insert(END, str(self.current_frame))
-                resized_frame = self.resize_frame(frame)
-                frame_rgb = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
-                photo = ImageTk.PhotoImage(image=Image.fromarray(frame_rgb))
-                self.canvas.create_image(0, 0, anchor=NW, image=photo)
-                self.canvas.image = photo
-            else:
-                self.play_pause_button.config(text=bt_play)
+            self.draw_frame(*self.cap.read())
 
             self.root.after(delay_ms, self.update_frame)  # Установили задержку согласно значению из поля ввода
 
