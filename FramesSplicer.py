@@ -2,7 +2,6 @@ from tkinter import filedialog, Tk, Label
 from tkinter.ttk import Progressbar
 import os
 import cv2
-import numpy as np
 
 sep = '_'
 
@@ -71,6 +70,7 @@ def create_video_from_images(root, progress_bar, image_paths, output_path, fps=3
     """
     Создаем видео из последовательности изображений.
     :param root: Объект окна Tkinter для обновления состояния
+    :param progress_bar: Шкала состояния обработки
     :param image_paths: Список путей к изображениям
     :param output_path: Выходной путь для сохранения видео
     :param fps: Частота кадров в секунду
@@ -121,7 +121,7 @@ if f_path:
         # Создаем видео с частотой кадров 24 FPS
         fps = 24
         output_path = f"{open_dir}/{b_name}.mp4"
-        create_video_from_images(root,progress_bar, frames_list, output_path, fps=fps)
+        create_video_from_images(root, progress_bar, frames_list, output_path, fps=fps)
         label_status.config(text="Видео успешно создано!")
 
 root.mainloop()
