@@ -15,7 +15,7 @@ def split_file_path(file_path):
     # Разделяем имя файла и расширение
     name, extension = os.path.splitext(filename_with_extension)
 
-    # Деление имени файла на две части перед символом подчеркивания (sep='_')
+    # Деление имени файла на две части перед символом подчеркивания sep='_'
     name_parts = name.split(sep)
     if len(name_parts) < 2:
         print(f"Имя файла не содержит символ '{sep}'")
@@ -72,13 +72,14 @@ def collect_and_sort_files(directory, base_name):
     # Возвращаем только пути к файлам
     return [path for _, path in sorted_files]
 
-def create_video_from_images(root, progress_bar, image_paths, output_path, fps=30, frame_size=None):
+def create_video_from_images(_root, _progress_bar, image_paths, _output_path, _fps=30, frame_size=None):
     """
     Создаем видео из последовательности изображений.
-    :param root: Объект окна Tkinter для обновления состояния
+    :param _root: Объект окна Tkinter для обновления состояния
+    :param _progress_bar: Прогресс-бар для отображения прогресса
     :param image_paths: Список путей к изображениям
-    :param output_path: Выходной путь для сохранения видео
-    :param fps: Частота кадров в секунду
+    :param _output_path: Выходной путь для сохранения видео
+    :param _fps: Частота кадров в секунду
     :param frame_size: Размер кадра (width, height); если None, берется размер первого изображения
     """
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Кодек сжатия видео
@@ -90,7 +91,7 @@ def create_video_from_images(root, progress_bar, image_paths, output_path, fps=3
     if frame_size is None:
         frame_size = (w, h)
 
-    out = cv2.VideoWriter(output_path, fourcc, fps, frame_size)
+    out = cv2.VideoWriter(_output_path, fourcc, _fps, frame_size)
     total_frames = len(image_paths)
 
     for i, img_path in enumerate(image_paths):
@@ -99,8 +100,8 @@ def create_video_from_images(root, progress_bar, image_paths, output_path, fps=3
         out.write(resized_img)
 
         # Обновление прогресса
-        progress_bar["value"] = ((i + 1) / total_frames) * 100
-        root.update_idletasks()  # Перерисовка интерфейса
+        _progress_bar["value"] = ((i + 1) / total_frames) * 100
+        _root.update_idletasks()  # Перерисовка интерфейса
 
     out.release()
 
@@ -126,7 +127,7 @@ if f_path:
         # Создаем видео с частотой кадров 24 FPS
         fps = 24
         output_path = f"{open_dir}/{b_name}.mp4"
-        create_video_from_images(root, progress_bar, frames_list, output_path, fps=fps)
+        create_video_from_images(root, progress_bar, frames_list, output_path, _fps=fps)
         label_status.config(text="Видео успешно создано!")
 
     else:
