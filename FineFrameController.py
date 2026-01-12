@@ -134,7 +134,7 @@ class VideoPlayer:
     # Метод для изменения зазмера окна приложения
     def set_window_size(self, width, height):
         # Определяем размеры экрана
-        screen_width = self.root.winfo_screenwidth() * 0.9
+        screen_width = self.root.winfo_screenwidth() * 0.98
         screen_height = self.root.winfo_screenheight() * 0.9 - (2*y_pad+buttons_height)
         # Вычисляем необходимый размер уменьшения кадра
         scale_factor = min(1, screen_width/width, screen_height/height)
